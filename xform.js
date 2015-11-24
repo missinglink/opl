@@ -2,7 +2,7 @@
 var through = require('through2'),
     split = require('split'),
     // Big = require('big.js'),
-    parser = require('./lib/parser');
+    opl = require('opl-stream');
 
 // v - Version
 // d - Deleted flag ('V' - visible or 'D' - deleted)
@@ -68,7 +68,7 @@ var deltaEncodeInt = function( field, func ){
 }
 
 // var deltaEncodeFloat = function( field, precision ){
-//   var delta = new Big(0), precision = precision || 6;
+//   var delta = new Big(0), precision = precision || 7;
 //   return through.obj( function( map, _, next ){
 //
 //     if( !map.hasOwnProperty( field ) ) return next( null, map );
@@ -81,8 +81,9 @@ var deltaEncodeInt = function( field, func ){
 //   });
 // }
 
+// @MattA if you trim the float at 7 dp then it will be truly lossless - the OSM data is internally stored as integers and scaled by 10^-7 when output as floats.
 var deltaEncodeFloat = function( field, precision ){
-  var delta = 0, pow = Math.pow( 10, precision || 6 );
+  var delta = 0, pow = Math.pow( 10, precision || 7 );
   return through.obj( function( map, _, next ){
 
     if( !map.hasOwnProperty( field ) ) return next( null, map );
@@ -96,7 +97,7 @@ var deltaEncodeFloat = function( field, precision ){
 }
 
 var zigzagEncodeFloat = function( field, precision ){
-  var pow = Math.pow( 10, precision || 6 );
+  var pow = Math.pow( 10, precision || 7 );
   return through.obj( function( map, _, next ){
 
     if( !map.hasOwnProperty( field ) ) return next( null, map );
@@ -129,7 +130,7 @@ var deltaEncodeString = function( field ){
     if( !map.hasOwnProperty( field ) ) return next( null, map );
 
     var str = map[field];
-    map[field] = ( str === delta ) ? '' : delta;
+    map[field] = ( str === delta ) ? '' : str;
     delta = str;
 
     next( null, map );
@@ -168,9 +169,9 @@ process.stdin.on( 'end', function(){
 
 process.stdin
   .pipe( split() )
-  // .pipe( typesBlacklist( ['n'] ) )
-  .pipe( parser.decodeStream() )
-  // .pipe( filterDeleted )
+
+  .pipe( opl.decodeStream() )
+  .pipe( filterDeleted )
   // .pipe( fieldsBlacklist( ['version','deleted','changeset','timestamp','user_id','username'] ) )
   // .pipe( tagsBlacklist( ['created_by','fixme','source','comment','note'] ) )
   .pipe( removeEmptyTags )
@@ -179,14 +180,10 @@ process.stdin
   .pipe( deltaEncodeInt( 'way_id' ) )
   .pipe( deltaEncodeInt( 'relation_id' ) )
 
-
   .pipe( zigzagEncodeFloat( 'latitude' ) )
   .pipe( zigzagEncodeFloat( 'longitude' ) )
   .pipe( deltaEncodeInt( 'latitude' ) )
   .pipe( deltaEncodeInt( 'longitude' ) )
-
-  // .pipe( deltaEncodeFloat( 'latitude' ) )
-  // .pipe( deltaEncodeFloat( 'longitude' ) )
 
   .pipe( deltaEncodeDate( 'timestamp' ) )
   .pipe( deltaEncodeInt( 'user_id' ) )
@@ -194,9 +191,6 @@ process.stdin
   .pipe( deltaEncodeString( 'username' ) )
 
   .pipe( deltaEncodeNodeRefs )
-  .pipe( parser.encodeStream() )
-  // .pipe( through.obj( function( item, enc, next ){
-    // this.push( JSON.stringify( item/*, null, 2*/ ) + '\n' );
-  //   next();
-  // }))
+  .pipe( opl.encodeStream() )
+
   .pipe( process.stdout );
