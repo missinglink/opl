@@ -26,6 +26,13 @@ module.exports.tests.encode = function(test) {
 
     t.end();
   });
+  // test('very large numbers', function(t) {
+  //
+  //   var index = algo.encode();
+  //   t.equal( index(1397097406000), 2466069600, 'field' );
+  //
+  //   t.end();
+  // });
 };
 
 module.exports.tests.decode = function(test) {
@@ -42,6 +49,13 @@ module.exports.tests.decode = function(test) {
 
     t.end();
   });
+  // test('very large numbers', function(t) {
+  //
+  //   var index = algo.decode();
+  //   t.equal( index(2466069600), 1397097406000, 'field' );
+  //
+  //   t.end();
+  // });
 };
 
 module.exports.all = function (tape, common) {
