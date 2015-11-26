@@ -1,33 +1,9 @@
 
-var through = require('through2'),
-    split = require('split'),
-    // Big = require('big.js'),
+var split = require('split'),
     opl = require('opl-stream'),
     delta = require('./lib/delta'),
     zigzag = require('./lib/zigzag'),
     misc = require('./lib/misc');
-
-// v - Version
-// d - Deleted flag ('V' - visible or 'D' - deleted)
-// c - Changeset ID
-// t - Timestamp (ISO Format)
-// i - User ID
-// u - Username
-// T - Tags
-// x - Longitude (nodes only)
-// y - Latitude (nodes only)
-// N - Nodes (ways only)
-// M - Members (relations only)
-
-// timers
-// var startTime = new Date().getTime();
-// process.stdin.on( 'end', function(){
-//   var nowTime = new Date().getTime();
-//   console.error( 'done' );
-//   console.error( (( nowTime - startTime ) / 1000 ) + 's' );
-// })
-
-// n204737
 
 // compress
 process.stdin
