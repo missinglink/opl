@@ -38,7 +38,7 @@ process.stdin
     next( null, obj );
   }))
 
-  // .pipe( misc.deltaDecodeNodeRefs )
+  .pipe( misc.deltaDecodeNodeRefs )
   .pipe( opl.encodeStream() )
 
   .pipe( process.stdout );
