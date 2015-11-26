@@ -1,0 +1,31 @@
+{
+  "name": "opl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "node test/run.js | tap-spec"
+  },
+  "dependencies": {
+    "split": "^1.0.0",
+    "opl-stream": "^0.1.0",
+    "through2": "^2.0.0"
+  },
+  "devDependencies": {
+    "tap-spec": "^4.1.1",
+    "tape": "^4.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/missinglink/opl.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/missinglink/opl/issues"
+  },
+  "homepage": "https://github.com/missinglink/opl#readme"
+}

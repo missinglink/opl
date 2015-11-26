@@ -1,9 +1,24 @@
 
 var split = require('split'),
+    through = require('through2'),
     opl = require('opl-stream'),
     delta = require('./lib/delta'),
     zigzag = require('./lib/zigzag'),
+    precision = require('./lib/precision'),
     misc = require('./lib/misc');
+
+var encoders = {
+  latitude:     [ precision.encode(), delta.int.encode(), zigzag.encode() ],
+  longitude:    [ precision.encode(), delta.int.encode(), zigzag.encode() ],
+  node_id:      [ delta.int.encode(), zigzag.encode() ],
+  way_id:       [ delta.int.encode(), zigzag.encode() ],
+  relation_id:  [ delta.int.encode(), zigzag.encode() ],
+  user_id:      [ delta.int.encode(), zigzag.encode() ],
+  changeset:    [ delta.int.encode(), zigzag.encode() ],
+  deleted:      [ delta.string.encode() ],
+  username:     [ delta.string.encode() ],
+  timestamp:    [ delta.date.encode() ],
+};
 
 // compress
 process.stdin
@@ -12,19 +27,16 @@ process.stdin
   .pipe( opl.decodeStream() )
   .pipe( misc.removeEmptyTags )
 
-  .pipe( delta.int.encode( 'node_id' ) )
-  .pipe( delta.int.encode( 'way_id' ) )
-  .pipe( delta.int.encode( 'relation_id' ) )
-
-  .pipe( zigzag.float.encode( 'latitude' ) )
-  .pipe( zigzag.float.encode( 'longitude' ) )
-  .pipe( delta.int.encode( 'latitude' ) )
-  .pipe( delta.int.encode( 'longitude' ) )
-
-  .pipe( delta.date.encode( 'timestamp' ) )
-  .pipe( delta.int.encode( 'user_id' ) )
-  .pipe( delta.int.encode( 'changeset' ) )
-  .pipe( delta.string.encode( 'username' ) )
+  // run all encoders on all fields
+  .pipe( through.obj( function( obj, _, next ){
+    for( var field in encoders ){
+      if( !obj.hasOwnProperty( field ) ) continue;
+      encoders[ field ].forEach( function( encoder ){
+        obj[ field ] = encoder( obj[ field ] )
+      });
+    }
+    next( null, obj );
+  }))
 
   .pipe( misc.deltaEncodeNodeRefs )
   .pipe( opl.encodeStream() )

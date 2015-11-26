@@ -40,10 +40,11 @@ process.stdin
   .pipe( delta.int.encode( 'way_id' ) )
   .pipe( delta.int.encode( 'relation_id' ) )
 
-  .pipe( zigzag.float.encode( 'latitude' ) )
-  .pipe( zigzag.float.encode( 'longitude' ) )
   .pipe( delta.int.encode( 'latitude' ) )
   .pipe( delta.int.encode( 'longitude' ) )
+
+  .pipe( zigzag.float.encode( 'latitude' ) )
+  .pipe( zigzag.float.encode( 'longitude' ) )
 
   .pipe( delta.date.encode( 'timestamp' ) )
   .pipe( delta.int.encode( 'user_id' ) )
