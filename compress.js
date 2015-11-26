@@ -25,14 +25,14 @@ process.stdin
   .pipe( split() )
 
   .pipe( opl.decodeStream() )
-  .pipe( misc.removeEmptyTags )
+  // .pipe( misc.removeEmptyTags )
 
   // run all encoders on all fields
   .pipe( through.obj( function( obj, _, next ){
     for( var field in encoders ){
       if( !obj.hasOwnProperty( field ) ) continue;
       encoders[ field ].forEach( function( encoder ){
-        obj[ field ] = encoder( obj[ field ] )
+        obj[ field ] = encoder( obj[ field ] );
       });
     }
     next( null, obj );

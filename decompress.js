@@ -1,32 +1,44 @@
 
 var split = require('split'),
+    through = require('through2'),
     opl = require('opl-stream'),
     delta = require('./lib/delta'),
     zigzag = require('./lib/zigzag'),
+    precision = require('./lib/precision'),
     misc = require('./lib/misc');
 
-// compress
+var decoders = {
+  latitude:     [ zigzag.decode(), delta.int.decode(), precision.decode() ],
+  longitude:    [ zigzag.decode(), delta.int.decode(), precision.decode() ],
+  node_id:      [ zigzag.decode(), delta.int.decode() ],
+  way_id:       [ zigzag.decode(), delta.int.decode() ],
+  relation_id:  [ zigzag.decode(), delta.int.decode() ],
+  user_id:      [ zigzag.decode(), delta.int.decode() ],
+  changeset:    [ zigzag.decode(), delta.int.decode() ],
+  deleted:      [ delta.string.decode() ],
+  username:     [ delta.string.decode() ],
+  timestamp:    [ delta.date.decode() ],
+};
+
+// decompress
 process.stdin
   .pipe( split() )
 
   .pipe( opl.decodeStream() )
   // .pipe( misc.removeEmptyTags )
 
-  .pipe( delta.int.decode( 'node_id' ) )
-  .pipe( delta.int.decode( 'way_id' ) )
-  .pipe( delta.int.decode( 'relation_id' ) )
+  // run all decoders on all fields
+  .pipe( through.obj( function( obj, _, next ){
+    for( var field in decoders ){
+      if( !obj.hasOwnProperty( field ) ) continue;
+      decoders[ field ].forEach( function( decoder ){
+        obj[ field ] = decoder( obj[ field ] );
+      });
+    }
+    next( null, obj );
+  }))
 
-  .pipe( zigzag.float.decode( 'latitude' ) )
-  .pipe( zigzag.float.decode( 'longitude' ) )
-  .pipe( delta.int.decode( 'latitude' ) )
-  .pipe( delta.int.decode( 'longitude' ) )
-
-  .pipe( delta.date.decode( 'timestamp' ) )
-  .pipe( delta.int.decode( 'user_id' ) )
-  .pipe( delta.int.decode( 'changeset' ) )
-  .pipe( delta.string.decode( 'username' ) )
-
-  // .pipe( misc.deltaEncodeNodeRefs )
+  // .pipe( misc.deltaDecodeNodeRefs )
   .pipe( opl.encodeStream() )
 
   .pipe( process.stdout );
